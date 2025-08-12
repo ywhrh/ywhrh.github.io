@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeetCode Flashcard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .btn[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2c3e50;
+            color: white;
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card-container {
+            perspective: 1000px;
+            margin: 0 auto 30px;
+            max-width: 800px;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 400px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
+            cursor: pointer;
+        }
+
+        .flashcard.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card-front {
+            background: white;
+            border-left: 4px solid #3498db;
+        }
+
+        .card-back {
+            background: #2c3e50;
+            color: white;
+            transform: rotateY(180deg);
+        }
+
+        .card-header {
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .tag {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .tag-difficulty {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .tag-category {
+            background: #f39c12;
+            color: white;
+        }
+
+        .tag-group {
+            background: #9b59b6;
+            color: white;
+        }
+
+        .tag-custom {
+            background: #1abc9c;
+            color: white;
+        }
+
+        .tag-mastery-high {
+            background: #27ae60;
+            color: white;
+        }
+
+        .tag-mastery-medium {
+            background: #f39c12;
+            color: white;
+        }
+
+        .tag-mastery-low {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .mastery-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn-mastery {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            min-width: 120px;
+        }
+
+        .btn-mastered {
+            background: #27ae60;
+            color: white;
+        }
+
+        .btn-mastered:hover {
+            background: #219a52;
+            transform: translateY(-1px);
+        }
+
+        .btn-need-practice {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-need-practice:hover {
+            background: #c0392b;
+            transform: translateY(-1px);
+        }
+
+        .mastery-stats {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .mastery-progress {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 5px;
+        }
+
+        .progress-bar {
+            width: 100px;
+            height: 6px;
+            background: #ecf0f1;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #e74c3c;
+            transition: width 0.3s;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+
+        .card-content {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+
+        .card-back .code-block {
+            background: #34495e;
+            border-color: #4a6478;
+            color: #ecf0f1;
+        }
+
+        .answer-section {
+            margin: 15px 0;
+        }
+
+        .answer-text {
+            margin-bottom: 15px;
+            line-height: 1.8;
+        
+            white-space: pre-wrap;
+        }
+
+        .answer-image {
+            max-width: 100%;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stats {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+        }
+
+        .stat-item {
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        #imagePreview {
+            max-width: 100%;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+
+        .no-cards {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .controls > * {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .card-face {
+                padding: 20px;
+            }
+
+            .flashcard {
+                height: 350px;
+            }
+        }
+    
+#sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 220px;
+    overflow-y: auto;
+    background-color: #f8f8f8;
+    border-right: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 1000;
+}
+#sidebar h3 {
+    margin-top: 0;
+    font-size: 16px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+}
+#sidebar ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+#sidebar ul li {
+    padding: 5px;
+    cursor: pointer;
+}
+#sidebar ul li:hover {
+    background-color: #e0e0e0;
+}
+#mainContent {
+    margin-left: 240px;
+    padding: 10px;
+}
+
+
+/* Softer card front colors and title styling */
+.card-front {
+    background-color: #fdfdfd;
+    color: #333;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+.card-front .card-title {
+    text-align: center;
+    font-size: 1.6em;
+    font-weight: bold;
+    margin: 0.5em 0;
+}
+
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+    <h3>卡片目录</h3>
+    <ul id="cardList"></ul>
+</div>
+<div id="mainContent">
+
+    <div class="container">
+        <div class="header">
+            <h1>🚀 LeetCode Flashcard</h1>
+            <p>专业的算法题复习工具</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" id="totalCards">0</div>
+                <div>总题数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="reviewedCards">0</div>
+                <div>已复习</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="currentIndex">0</div>
+                <div>当前进度</div>
+            </div>
+        </div>
+
+        <div class="filter-section">
+            <div class="controls">
+                <button class="btn btn-primary" onclick="showAddModal()">+ 添加题目</button>
+                <button class="btn btn-secondary" onclick="exportData()">📤 导出数据</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('importFile').click()">📥 导入数据</button>
+                <button class="btn btn-secondary" onclick="quickImportFromCloud()">☁️ 从云端导入</button>
+                <input type="file" id="importFile" accept=".json" style="display: none;" onchange="importData(event)">
+                <input type="file" id="cloudImportFile" accept=".json" style="display: none;" onchange="importFromCloud(event)">
+                <select id="groupFilter">
+                    <option value="">所有分组</option>
+                </select>
+                <select id="categoryFilter">
+                    <option value="">所有分类</option>
+                </select>
+                <select id="tagFilter">
+                    <option value="">所有标签</option>
+                </select>
+                <select id="difficultyFilter">
+                    <option value="">所有难度</option>
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                </select>
+                <input type="text" id="searchInput" placeholder="搜索题目/标签..." style="min-width: 200px;">
+                <button class="btn btn-secondary" onclick="shuffleCards()">🔀 随机顺序</button>
+                <button class="btn btn-secondary" onclick="sortByWeakness()">📈 不熟优先</button>
+</div>
+        </div>
+
+        <div id="cardDisplay">
+            <div class="no-cards">
+                <p>还没有添加任何题目</p>
+                <p>点击"添加题目"开始创建你的第一张卡片吧！</p>
+            </div>
+        </div>
+
+        <div id="cardNavigation" style="display: none;">
+            <div class="card-actions">
+                <button class="btn btn-secondary" onclick="prevCard()">⬅️ 上一题</button>
+                <button class="btn btn-primary" onclick="flipCard()">翻转卡片</button>
+                <button class="btn btn-secondary" onclick="nextCard()">下一题 ➡️</button>
+                <button class="btn btn-secondary" onclick="editCurrentCard()">✏️ 编辑</button>
+                <button class="btn" style="background: #e74c3c; color: white;" onclick="deleteCurrentCard()">🗑️ 删除</button>
+            </div>
+            <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #7f8c8d;">
+                💡 提示：到达最后一题时会自动循环到第一题 | 🔀 随机顺序复习 | 📈 优先练习薄弱题目
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加/编辑题目的模态框 -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h2 id="modalTitle">添加新题目</h2>
+            <form id="cardForm">
+                <div class="form-group">
+                    <label for="cardTitle">题目标题 *</label>
+                    <input type="text" id="cardTitle" required placeholder="例: 1. Two Sum">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cardProblem">题目描述</label>
+                    <textarea id="cardProblem" placeholder="题目的详细描述..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardDifficulty">难度</label>
+                    <select id="cardDifficulty">
+                        <option value="">选择难度</option>
+                        <option value="Easy">Easy</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Hard">Hard</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardCategory">分类 * (单选)</label>
+                    <select id="cardCategory" required>
+                        <option value="">选择分类</option>
+                        <option value="位运算经典题型">位运算经典题型</option>
+                        <option value="动态规划">动态规划</option>
+                        <option value="哈希表与集合">哈希表与集合</option>
+                        <option value="堆与优先队列">堆与优先队列</option>
+                        <option value="字符串处理">字符串处理</option>
+                        <option value="数组与双指针">数组与双指针</option>
+                        <option value="树与递归">树与递归</option>
+                        <option value="语法技巧与常见易错点">语法技巧与常见易错点</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardTags">标签 (多选，用逗号分隔)</label>
+                    <input type="text" id="cardTags" placeholder="例: 经典题, Facebook, 高频, 面试重点">
+                    <small style="color: #7f8c8d; font-size: 12px;">
+                        💡 常用标签：经典题, 高频, 面试重点, Facebook, Google, Microsoft, Amazon, 困难题, 模板题, 需复习
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardGroup">分组</label>
+                    <input type="text" id="cardGroup" placeholder="例: Top 100, Binary Tree, DP">
+                </div>
+
+                <div class="form-group">
+                    <label for="cardSolution">解题思路</label>
+                    <textarea id="cardSolution" placeholder="解题的思路和方法..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardCode">C++ 代码</label>
+                    <textarea id="cardCode" placeholder="class Solution {&#10;public:&#10;    // 你的代码&#10;};"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardComplexity">时间/空间复杂度</label>
+                    <textarea id="cardComplexity" placeholder="时间复杂度: O(n)&#10;空间复杂度: O(1)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="cardImage">答案截图</label>
+                    <div style="border: 2px dashed #ddd; border-radius: 6px; padding: 20px; text-align: center; cursor: pointer; outline: none;" 
+                         id="pasteArea" 
+                         tabindex="0"
+                         onclick="document.getElementById('cardImage').click()">
+                        <p>📋 直接粘贴截图 (Ctrl+V 或 Cmd+V)</p>
+                        <p style="font-size: 12px; color: #7f8c8d;">或点击选择文件</p>
+                        <input type="file" id="cardImage" accept="image/*" style="display: none;">
+                        <img id="imagePreview" style="display: none; max-width: 100%; margin-top: 10px; border-radius: 6px;">
+<button type="button" id="removeImageBtn" style="display:none;">❌ 移除图片</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; justify-content: flex-end; margin-top: 30px;">
+                    <button type="button" class="btn btn-secondary" onclick="hideAddModal()">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let cards = [];
+        let filteredCards = [];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+        let editingIndex = -1;
+        let cloudImportPath = ''; // 记住用户选择的云端路径
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+
+document.getElementById('removeImageBtn').addEventListener('click', () => {
+    const preview = document.getElementById('imagePreview');
+    preview.src = '';
+    preview.style.display = 'none';
+    document.getElementById('removeImageBtn').style.display = 'none';
+});
+loadCards();
+            updateStats();
+            updateFilters();
+            displayCurrentCard();
+            
+            // 搜索功能
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('groupFilter').addEventListener('change', applyFilters);
+            document.getElementById('categoryFilter').addEventListener('change', applyFilters);
+            document.getElementById('tagFilter').addEventListener('change', applyFilters);
+            document.getElementById('difficultyFilter').addEventListener('change', applyFilters);
+            
+            // 图片预览和剪贴板粘贴
+            document.getElementById('cardImage').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                const preview = document.getElementById('imagePreview');
+                
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.src = e.target.result;
+                        preview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    preview.style.display = 'none';
+                }
+            });
+
+            // 剪贴板粘贴功能 - 全局监听
+            document.addEventListener('paste', function(e) {
+                // 检查是否在模态框中且焦点在粘贴区域附近
+                const modal = document.getElementById('addModal');
+                const pasteArea = document.getElementById('pasteArea');
+                
+                if (modal.style.display === 'block') {
+                    const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+                    
+                    for (let i = 0; i < items.length; i++) {
+                        if (items[i].type.indexOf('image') !== -1) {
+                            e.preventDefault(); // 阻止默认粘贴行为
+                            
+                            const blob = items[i].getAsFile();
+                            const reader = new FileReader();
+                            
+                            reader.onload = function(event) {
+                                const preview = document.getElementById('imagePreview');
+                                preview.src = event.target.result;
+                                preview.style.display = 'block';
+                                
+                                // 更新粘贴区域提示
+                                pasteArea.querySelector('p').textContent = '✅ 截图已粘贴';
+                                pasteArea.style.borderColor = '#27ae60';
+                                pasteArea.style.backgroundColor = '#d5f4e6';
+                            };
+                            
+                            reader.readAsDataURL(blob);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            // 粘贴区域点击聚焦
+            document.getElementById('pasteArea').addEventListener('click', function() {
+                this.focus();
+            });
+            
+            // 添加拖拽功能
+            const pasteArea = document.getElementById('pasteArea');
+            
+            pasteArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                pasteArea.style.borderColor = '#3498db';
+                pasteArea.style.backgroundColor = '#f8f9fa';
+            });
+            
+            pasteArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                pasteArea.style.borderColor = '#ddd';
+                pasteArea.style.backgroundColor = 'transparent';
+            });
+            
+            pasteArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                pasteArea.style.borderColor = '#ddd';
+                pasteArea.style.backgroundColor = 'transparent';
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].type.indexOf('image') !== -1) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        const preview = document.getElementById('imagePreview');
+                        preview.src = event.target.result;
+                        preview.style.display = 'block';
+                        pasteArea.querySelector('p').textContent = '✅ 截图已上传';
+                    };
+                    reader.readAsDataURL(files[0]);
+                }
+            });
+
+            // 表单提交
+            document.getElementById('cardForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveCard();
+            });
+        });
+
+        // 保存卡片数据到本地存储
+        function saveCards() {
+            const cardsData = cards.map(card => ({
+                ...card,
+                // 如果有图片，确保保存base64数据
+                image: card.image || null
+            }));
+            localStorage.setItem('leetcode_flashcards', JSON.stringify(cardsData));
+        }
+
+        // 从本地存储加载卡片数据
+        function loadCards() {
+            const saved = localStorage.getItem('leetcode_flashcards');
+            if (saved) {
+                cards = JSON.parse(saved);
+            }
+            
+            // 加载云端导入路径设置
+            const savedPath = localStorage.getItem('leetcode_cloud_path');
+            if (savedPath) {
+                cloudImportPath = savedPath;
+                updateCloudButtonText();
+            }
+            
+            applyFilters();
+        }
+
+        // 显示添加模态框
+        function showAddModal() {
+            editingIndex = -1;
+            document.getElementById('modalTitle').textContent = '添加新题目';
+            document.getElementById('cardForm').reset();
+            document.getElementById('imagePreview').style.display = 'none';
+            
+            // 重置粘贴区域提示和样式
+            const pasteArea = document.getElementById('pasteArea');
+            pasteArea.querySelector('p').textContent = '📋 直接粘贴截图 (Ctrl+V 或 Cmd+V)';
+            pasteArea.style.borderColor = '#ddd';
+            pasteArea.style.backgroundColor = 'transparent';
+            
+            document.getElementById('addModal').style.display = 'block';
+            
+            // 延迟聚焦到粘贴区域，确保剪贴板功能正常工作
+            setTimeout(() => {
+                pasteArea.focus();
+            }, 100);
+        }
+
+        // 隐藏模态框
+        function hideAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+
+        // 保存卡片
+        function saveCard() {
+            const preview = document.getElementById('imagePreview');
+const imageData = (preview && preview.style.display !== 'none' && preview.src.trim() !== '') 
+    ? preview.src 
+    : null;
+const cardData = {
+                title: document.getElementById('cardTitle').value,
+                problem: document.getElementById('cardProblem').value || '', // 空字符串而不是默认值
+                difficulty: document.getElementById('cardDifficulty').value || 'Medium',
+                category: document.getElementById('cardCategory').value,
+                tags: document.getElementById('cardTags').value,
+                group: document.getElementById('cardGroup').value,
+                solution: document.getElementById('cardSolution').value,
+                code: document.getElementById('cardCode').value,
+                complexity: document.getElementById('cardComplexity').value,
+                image: imageData,
+                reviewed: false,
+                masteryCount: 0, // 总测试次数
+                needPracticeCount: 0, // 需要练习的次数
+                createdAt: new Date().toISOString()
+            };
+
+            if (editingIndex >= 0) {
+                cards[editingIndex] = { ...cards[editingIndex], ...cardData };
+            } else {
+                cards.push(cardData);
+            }
+
+            saveCards();
+            updateStats();
+            updateFilters();
+            applyFilters();
+            hideAddModal();
+
+            // 如果是新添加的卡片，跳转到最后一张
+            if (editingIndex < 0) {
+                currentCardIndex = filteredCards.length - 1;
+                displayCurrentCard();
+            }
+        }
+
+        // 应用过滤器
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const groupFilter = document.getElementById('groupFilter').value;
+            const categoryFilter = document.getElementById('categoryFilter').value;
+            const tagFilter = document.getElementById('tagFilter').value;
+            const difficultyFilter = document.getElementById('difficultyFilter').value;
+
+            filteredCards = cards.filter(card => {
+                const matchesSearch = !searchTerm || 
+                    card.title.toLowerCase().includes(searchTerm) ||
+                    card.problem.toLowerCase().includes(searchTerm) ||
+                    (card.tags && card.tags.toLowerCase().includes(searchTerm));
+                
+                const matchesGroup = !groupFilter || card.group === groupFilter;
+                const matchesCategory = !categoryFilter || card.category === categoryFilter;
+                const matchesTag = !tagFilter || (card.tags && card.tags.split(',').map(t => t.trim()).includes(tagFilter));
+                const matchesDifficulty = !difficultyFilter || card.difficulty === difficultyFilter;
+
+                return matchesSearch && matchesGroup && matchesCategory && matchesTag && matchesDifficulty;
+            });
+
+            currentCardIndex = 0;
+            displayCurrentCard();
+            updateStats();
+        }
+
+        // 更新过滤器选项
+        function updateFilters() {
+            const groupFilter = document.getElementById('groupFilter');
+            const categoryFilter = document.getElementById('categoryFilter');
+            const tagFilter = document.getElementById('tagFilter');
+            
+            // 更新分组选项
+            const groups = [...new Set(cards.map(card => card.group).filter(Boolean))];
+            groupFilter.innerHTML = '<option value="">所有分组</option>';
+            groups.forEach(group => {
+                const option = document.createElement('option');
+                option.value = group;
+                option.textContent = group;
+                groupFilter.appendChild(option);
+            });
+
+            // 更新分类选项 (现在分类是单选，直接从数据中获取)
+            const categories = [...new Set(cards.map(card => card.category).filter(Boolean))];
+            categoryFilter.innerHTML = '<option value="">所有分类</option>';
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryFilter.appendChild(option);
+            });
+
+            // 更新标签选项
+            const allTags = [...new Set(cards.flatMap(card => 
+                card.tags ? card.tags.split(',').map(tag => tag.trim()) : []
+            ).filter(Boolean))];
+            tagFilter.innerHTML = '<option value="">所有标签</option>';
+            allTags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag;
+                option.textContent = tag;
+                tagFilter.appendChild(option);
+            });
+        }
+
+        // 显示当前卡片
+        function displayCurrentCard() {
+            const cardDisplay = document.getElementById('cardDisplay');
+            const cardNavigation = document.getElementById('cardNavigation');
+            
+            if (filteredCards.length === 0) {
+                cardDisplay.innerHTML = `
+                    <div class="no-cards">
+                        <p>没有找到符合条件的题目</p>
+                        <p>试试调整筛选条件或添加新题目</p>
+                    </div>
+                `;
+                cardNavigation.style.display = 'none';
+                return;
+            }
+
+            cardNavigation.style.display = 'block';
+            const card = filteredCards[currentCardIndex];
+            isFlipped = false;
+
+            const cardHtml = `
+                <div class="card-container">
+                    <div class="flashcard" id="flashcard" onclick="flipCard()">
+                        <div class="card-face card-front">
+    <div class="card-title card-title-centered">${card.title}</div>
+    <div class="mastery-buttons">
+        <button class="btn-mastery btn-mastered" onclick="markAsMastered()">✅ 掌握了</button>
+        <button class="btn-mastery btn-need-practice" onclick="markAsNeedPractice()">❌ 还要练习</button>
+    </div>
+</div>
+
+                        <div class="card-face card-back">
+                            <div class="card-content">
+                                ${card.solution ? `
+                                    <div class="answer-section">
+                                        <h4>💡 解题思路</h4>
+                                        <div class="answer-text">${card.solution}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${card.code ? `
+                                    <div class="answer-section">
+                                        <h4>💻 C++ 代码</h4>
+                                        <div class="code-block">${card.code}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${card.complexity ? `
+                                    <div class="answer-section">
+                                        <h4>⏱️ 复杂度分析</h4>
+                                        <div class="answer-text">${card.complexity}</div>
+                                    </div>
+                                ` : ''}
+                                
+                                ${card.image ? `
+                                    <div class="answer-section">
+                                        <h4>📸 答案截图</h4>
+                                        <img src="${card.image}" alt="答案截图" class="answer-image">
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            cardDisplay.innerHTML = cardHtml;
+            updateStats();
+        }
+
+        // 翻转卡片
+        function flipCard() {
+            const flashcard = document.getElementById('flashcard');
+            if (flashcard) {
+                isFlipped = !isFlipped;
+                flashcard.classList.toggle('flipped');
+                
+                // 标记为已复习
+                if (isFlipped && filteredCards[currentCardIndex]) {
+                    const originalIndex = cards.indexOf(filteredCards[currentCardIndex]);
+                    if (originalIndex >= 0) {
+                        cards[originalIndex].reviewed = true;
+                        saveCards();
+                        updateStats();
+                    }
+                }
+            }
+        }
+
+        // 上一张卡片
+        function prevCard() {
+            if (filteredCards.length === 0) return;
+            
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+            } else {
+                // 到第一张时，循环到最后一张
+                currentCardIndex = filteredCards.length - 1;
+            }
+            displayCurrentCard();
+        }
+
+        // 下一张卡片
+        function nextCard() {
+            if (filteredCards.length === 0) return;
+            
+            if (currentCardIndex < filteredCards.length - 1) {
+                currentCardIndex++;
+            } else {
+                // 到最后一张时，循环到第一张
+                currentCardIndex = 0;
+            }
+            displayCurrentCard();
+        }
+
+        // 随机打乱卡片顺序
+        function shuffleCards() {
+            for (let i = filteredCards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+            }
+            currentCardIndex = 0;
+            displayCurrentCard();
+        }
+
+        // 按掌握度排序 - 不熟优先
+        function sortByWeakness() {
+            filteredCards.sort((a, b) => {
+                // 计算需要练习的百分比
+                const getWeaknessRate = (card) => {
+                    if (!card.masteryCount || card.masteryCount === 0) {
+                        return -1; // 未测试的排在最后
+                    }
+                    return (card.needPracticeCount / card.masteryCount) * 100;
+                };
+                
+                const aWeakness = getWeaknessRate(a);
+                const bWeakness = getWeaknessRate(b);
+                
+                // 如果两个都未测试，按创建时间排序（新的在前）
+                if (aWeakness === -1 && bWeakness === -1) {
+                    return new Date(b.createdAt) - new Date(a.createdAt);
+                }
+                
+                // 未测试的排在已测试的后面
+                if (aWeakness === -1) return 1;
+                if (bWeakness === -1) return -1;
+                
+                // 按需要练习的百分比降序排列（高的在前）
+                return bWeakness - aWeakness;
+            });
+            
+            currentCardIndex = 0;
+            displayCurrentCard();
+            
+            // 显示排序提示
+            const message = filteredCards.length > 0 
+                ? `已按掌握度排序：优先显示需要练习的题目 📈`
+                : '没有可排序的题目';
+            
+            // 临时显示提示消息
+            const originalTitle = document.querySelector('.header h1').textContent;
+            document.querySelector('.header h1').textContent = message;
+            document.querySelector('.header h1').style.color = '#e74c3c';
+            
+            setTimeout(() => {
+                document.querySelector('.header h1').textContent = originalTitle;
+                document.querySelector('.header h1').style.color = '#2c3e50';
+            }, 2000);
+        }
+
+        // 编辑当前卡片
+        function editCurrentCard() {
+            if (filteredCards[currentCardIndex]) {
+                const card = filteredCards[currentCardIndex];
+                editingIndex = cards.indexOf(card);
+                
+                document.getElementById('modalTitle').textContent = '编辑题目';
+                document.getElementById('cardTitle').value = card.title;
+                document.getElementById('cardProblem').value = card.problem;
+                document.getElementById('cardDifficulty').value = card.difficulty;
+                document.getElementById('cardCategory').value = card.category;
+                document.getElementById('cardTags').value = card.tags || '';
+                document.getElementById('cardGroup').value = card.group || '';
+                document.getElementById('cardSolution').value = card.solution || '';
+                document.getElementById('cardCode').value = card.code || '';
+                document.getElementById('cardComplexity').value = card.complexity || '';
+                
+                const preview = document.getElementById('imagePreview');
+                if (card.image) {
+                    preview.src = card.image;
+                    preview.style.display = 'block';
+    document.getElementById('removeImageBtn').style.display = 'inline-block';
+                } else {
+                    preview.style.display = 'none';
+                }
+                
+                document.getElementById('addModal').style.display = 'block';
+            }
+        }
+
+        // 删除当前卡片
+        function deleteCurrentCard() {
+            if (filteredCards[currentCardIndex] && confirm('确定要删除这张卡片吗？')) {
+                const card = filteredCards[currentCardIndex];
+                const originalIndex = cards.indexOf(card);
+                
+                if (originalIndex >= 0) {
+                    cards.splice(originalIndex, 1);
+                    saveCards();
+                    updateFilters();
+                    applyFilters();
+                    
+                    // 调整当前索引
+                    if (currentCardIndex >= filteredCards.length) {
+                        currentCardIndex = Math.max(0, filteredCards.length - 1);
+                    }
+                    displayCurrentCard();
+                }
+            }
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            document.getElementById('totalCards').textContent = filteredCards.length;
+            document.getElementById('reviewedCards').textContent = 
+                filteredCards.filter(card => card.reviewed).length;
+            document.getElementById('currentIndex').textContent = 
+                filteredCards.length > 0 ? currentCardIndex + 1 : 0;
+        }
+
+        // 点击模态框背景关闭
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideAddModal();
+            }
+        });
+
+        // 导出数据到指定位置（建议导出到iCloud Drive）
+        function exportData() {
+            if (cards.length === 0) {
+                alert('没有数据可以导出');
+                return;
+            }
+            
+            const dataStr = JSON.stringify({
+                cards: cards,
+                exportDate: new Date().toISOString(),
+                version: '1.0'
+            }, null, 2);
+            
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `leetcode-flashcards.json`; // 固定文件名，方便云端同步
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('💡 提示：建议将文件保存到 iCloud Drive，这样其他设备就能自动同步了！\n\n建议路径：iCloud Drive > LeetCode文件夹');
+        }
+
+        // 快速从云端导入（使用记住的路径）
+        function quickImportFromCloud() {
+            if (cloudImportPath) {
+                // 如果已经设置了路径，直接提示用户
+                if (confirm(`从云端导入数据？\n\n当前设置路径：${cloudImportPath}\n\n点击"确定"继续，点击"取消"重新选择路径`)) {
+                    document.getElementById('cloudImportFile').click();
+                } else {
+                    selectNewCloudPath();
+                }
+            } else {
+                selectNewCloudPath();
+            }
+        }
+
+        // 选择新的云端路径
+        function selectNewCloudPath() {
+            alert('请选择你的iCloud Drive中的数据文件\n\n建议路径：iCloud Drive > LeetCode文件夹 > leetcode-flashcards.json');
+            document.getElementById('cloudImportFile').click();
+        }
+
+        // 从云端导入数据
+        function importFromCloud(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // 记住文件路径（文件名和相对路径）
+            const fileName = file.name;
+            cloudImportPath = `iCloud Drive/.../LeetCode/${fileName}`;
+            localStorage.setItem('leetcode_cloud_path', cloudImportPath);
+            updateCloudButtonText();
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!importedData.cards || !Array.isArray(importedData.cards)) {
+                        throw new Error('无效的数据格式');
+                    }
+                    
+                    // 显示导入选项
+                    const choice = confirm(
+                        `☁️ 从云端检测到 ${importedData.cards.length} 张卡片\n` +
+                        `导出时间：${new Date(importedData.exportDate).toLocaleString()}\n\n` +
+                        '选择导入方式：\n' +
+                        '✅ 确定 = 智能合并（推荐）\n' +
+                        '❌ 取消 = 完全替换'
+                    );
+                    
+                    if (choice) {
+                        // 智能合并：更新现有，添加新的
+                        const existingMap = new Map(cards.map(card => [card.title, card]));
+                        let updatedCount = 0;
+                        let addedCount = 0;
+                        
+                        importedData.cards.forEach(importedCard => {
+                            if (existingMap.has(importedCard.title)) {
+                                // 更新现有卡片（如果云端版本更新）
+                                const existing = existingMap.get(importedCard.title);
+                                const existingDate = new Date(existing.createdAt || 0);
+                                const importedDate = new Date(importedCard.createdAt || 0);
+                                
+                                if (importedDate > existingDate) {
+                                    Object.assign(existing, importedCard);
+                                    updatedCount++;
+                                }
+                            } else {
+                                // 添加新卡片
+                                cards.push(importedCard);
+                                addedCount++;
+                            }
+                        });
+                        
+                        alert(`✅ 智能合并完成！\n更新了 ${updatedCount} 张卡片\n新增了 ${addedCount} 张卡片`);
+                    } else {
+                        // 完全替换
+                        cards = importedData.cards;
+                        alert(`✅ 数据已完全同步！\n总共 ${cards.length} 张卡片`);
+                    }
+                    
+                    saveCards();
+                    updateFilters();
+                    applyFilters();
+                    
+                } catch (error) {
+                    alert('❌ 导入失败：' + error.message);
+                }
+                
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // 更新云端按钮文本
+        function updateCloudButtonText() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(btn => {
+                if (btn.textContent.includes('从云端导入')) {
+                    if (cloudImportPath) {
+                        btn.innerHTML = '☁️ 云端同步';
+                        btn.title = `当前路径：${cloudImportPath}`;
+                    } else {
+                        btn.innerHTML = '☁️ 从云端导入';
+                        btn.title = '选择iCloud Drive中的数据文件';
+                    }
+                }
+            });
+        }
+
+        // 导入数据
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // 验证数据格式
+                    if (!importedData.cards || !Array.isArray(importedData.cards)) {
+                        throw new Error('无效的数据格式');
+                    }
+                    
+                    // 询问用户是否要合并还是替换
+                    const merge = confirm(
+                        `检测到 ${importedData.cards.length} 张卡片\n\n` +
+                        '点击"确定"合并到现有数据\n' +
+                        '点击"取消"替换所有现有数据'
+                    );
+                    
+                    if (merge) {
+                        // 合并数据，避免重复
+                        const existingTitles = new Set(cards.map(card => card.title));
+                        const newCards = importedData.cards.filter(card => !existingTitles.has(card.title));
+                        cards = [...cards, ...newCards];
+                        alert(`成功导入 ${newCards.length} 张新卡片`);
+                    } else {
+                        // 替换所有数据
+                        cards = importedData.cards;
+                        alert(`成功导入 ${cards.length} 张卡片`);
+                    }
+                    
+                    saveCards();
+                    updateFilters();
+                    applyFilters();
+                    
+                } catch (error) {
+                    alert('导入失败：' + error.message);
+                }
+                
+                // 清空文件选择
+                event.target.value = '';
+            };
+            
+            reader.readAsText(file);
+        }
+
+        // 生成共享链接（将数据编码到URL中）
+        
+        // 从URL加载分享的数据
+        
+        // 获取掌握度标签
+        function getMasteryTag(card) {
+            if (!card.masteryCount || card.masteryCount === 0) {
+                return '';
+            }
+            
+            const failureRate = (card.needPracticeCount / card.masteryCount) * 100;
+            
+            if (failureRate <= 20) {
+                return `<span class="tag tag-mastery-high">掌握度: ${Math.round(100 - failureRate)}%</span>`;
+            } else if (failureRate <= 50) {
+                return `<span class="tag tag-mastery-medium">掌握度: ${Math.round(100 - failureRate)}%</span>`;
+            } else {
+                return `<span class="tag tag-mastery-low">掌握度: ${Math.round(100 - failureRate)}%</span>`;
+            }
+        }
+
+        // 获取掌握度统计信息
+        function getMasteryStats(card) {
+            if (!card.masteryCount || card.masteryCount === 0) {
+                return '<div class="mastery-stats">还未进行掌握度测试</div>';
+            }
+            
+            const successRate = Math.round(((card.masteryCount - card.needPracticeCount) / card.masteryCount) * 100);
+            const failureRate = Math.round((card.needPracticeCount / card.masteryCount) * 100);
+            
+            return `
+                <div class="mastery-stats">
+                    <div>掌握度统计: ${card.masteryCount} 次测试</div>
+                    <div class="mastery-progress">
+                        <span>掌握 ${successRate}%</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${failureRate}%; background: ${failureRate > 50 ? '#e74c3c' : failureRate > 20 ? '#f39c12' : '#27ae60'}"></div>
+                        </div>
+                        <span>需练习 ${failureRate}%</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 标记为已掌握
+        function markAsMastered() {
+            if (filteredCards[currentCardIndex]) {
+                const card = filteredCards[currentCardIndex];
+                const originalIndex = cards.indexOf(card);
+                
+                if (originalIndex >= 0) {
+                    cards[originalIndex].masteryCount = (cards[originalIndex].masteryCount || 0) + 1;
+                    cards[originalIndex].reviewed = true;
+                    // needPracticeCount 不增加
+                    
+                    saveCards();
+                    
+                    // 自动跳转到下一题
+                    setTimeout(() => {
+                        nextCard();
+                    }, 500);
+                }
+            }
+        }
+
+        // 标记为需要练习
+        function markAsNeedPractice() {
+            if (filteredCards[currentCardIndex]) {
+                const card = filteredCards[currentCardIndex];
+                const originalIndex = cards.indexOf(card);
+                
+                if (originalIndex >= 0) {
+                    cards[originalIndex].masteryCount = (cards[originalIndex].masteryCount || 0) + 1;
+                    cards[originalIndex].needPracticeCount = (cards[originalIndex].needPracticeCount || 0) + 1;
+                    cards[originalIndex].reviewed = true;
+                    
+                    saveCards();
+                    
+                    // 显示鼓励信息
+                    const btn = event.target;
+                    const originalText = btn.textContent;
+                    btn.textContent = '💪 继续加油！';
+                    btn.style.background = '#f39c12';
+                    
+                    setTimeout(() => {
+                        btn.textContent = originalText;
+                        btn.style.background = '#e74c3c';
+                        nextCard();
+                    }, 800);
+                }
+            }
+        }
+    </script>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function populateSidebar() {
+        var list = document.getElementById('cardList');
+        if (!list) return;
+        list.innerHTML = '';
+        cards.forEach(function(card, index) {
+            var li = document.createElement('li');
+            li.textContent = card.title || '无标题';
+            li.addEventListener('click', function() {
+    window.open('edit_card.html?index=' + index, '_blank');
+});
+            list.appendChild(li);
+        });
+    }
+    populateSidebar();
+
+    // Hook into wherever cards change
+    if (typeof renderCardList === 'function') {
+        var originalRenderCardList = renderCardList;
+        renderCardList = function() {
+            originalRenderCardList();
+            populateSidebar();
+        };
+    }
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar = document.getElementById('sidebar');
+    if (!sidebar) return;
+    sidebar.innerHTML = '';
+    const cards = JSON.parse(localStorage.getItem('leetcode_flashcards') || '[]');
+    const categories = {};
+    cards.forEach((card, index) => {
+        const category = card.category || '未分类';
+        if (!categories[category]) categories[category] = [];
+        categories[category].push({title: card.title || '无标题', index});
+    });
+    Object.keys(categories).forEach(cat => {
+        const catHeader = document.createElement('div');
+        catHeader.textContent = cat;
+        catHeader.style.fontWeight = 'bold';
+        catHeader.style.marginTop = '10px';
+        sidebar.appendChild(catHeader);
+        categories[cat].forEach(c => {
+            const li = document.createElement('div');
+            li.textContent = '• ' + c.title;
+            li.style.cursor = 'pointer';
+            li.onclick = function() {
+                window.open('edit_card.html?index=' + c.index, '_blank');
+            };
+            sidebar.appendChild(li);
+        });
+    });
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>编辑卡片</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        label { display: block; margin-top: 10px; }
+        input, textarea, select { width: 100%; padding: 5px; margin-top: 5px; }
+        button { margin-top: 15px; padding: 10px 15px; }
+    </style>
+</head>
+<body>
+    <h2>编辑卡片</h2>
+    <form id="editCardForm">
+        <label>标题：<input type="text" id="cardTitle"></label>
+        <label>题目：<textarea id="cardProblem"></textarea></label>
+        <label>难度：
+            <select id="cardDifficulty">
+                <option value="Easy">Easy</option>
+                <option value="Medium">Medium</option>
+                <option value="Hard">Hard</option>
+            </select>
+        </label>
+        <label>分类：<input type="text" id="cardCategory"></label>
+        <label>标签：<input type="text" id="cardTags"></label>
+        <label>分组：<input type="text" id="cardGroup"></label>
+        <label>解题思路：<textarea id="cardSolution"></textarea></label>
+        <label>代码：<textarea id="cardCode"></textarea></label>
+        <label>复杂度：<input type="text" id="cardComplexity"></label>
+        <button type="button" id="saveBtn">保存</button>
+    </form>
+
+    <script>
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+        const index = parseInt(getQueryParam('index'), 10);
+        let cards = JSON.parse(localStorage.getItem('leetcode_flashcards') || '[]');
+
+        if (!isNaN(index) && cards[index]) {
+            const c = cards[index];
+            document.getElementById('cardTitle').value = c.title || '';
+            document.getElementById('cardProblem').value = c.problem || '';
+            document.getElementById('cardDifficulty').value = c.difficulty || 'Medium';
+            document.getElementById('cardCategory').value = c.category || '';
+            document.getElementById('cardTags').value = c.tags || '';
+            document.getElementById('cardGroup').value = c.group || '';
+            document.getElementById('cardSolution').value = c.solution || '';
+            document.getElementById('cardCode').value = c.code || '';
+            document.getElementById('cardComplexity').value = c.complexity || '';
+        }
+
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            if (!isNaN(index) && cards[index]) {
+                cards[index] = {
+                    ...cards[index],
+                    title: document.getElementById('cardTitle').value,
+                    problem: document.getElementById('cardProblem').value,
+                    difficulty: document.getElementById('cardDifficulty').value,
+                    category: document.getElementById('cardCategory').value,
+                    tags: document.getElementById('cardTags').value,
+                    group: document.getElementById('cardGroup').value,
+                    solution: document.getElementById('cardSolution').value,
+                    code: document.getElementById('cardCode').value,
+                    complexity: document.getElementById('cardComplexity').value,
+                };
+                localStorage.setItem('leetcode_flashcards', JSON.stringify(cards));
+                alert('保存成功！返回主页面刷新即可看到更新。');
+            }
+        });
+    </script>
+</body>
+</html>
